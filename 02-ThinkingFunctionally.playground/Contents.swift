@@ -74,6 +74,11 @@ extension Position {
 }
 
 
+func - (lhs: Position, rhs: Position) -> Position {
+    return lhs.minus(rhs)
+}
+
+
 extension Ship {
     func canSafelyEngageShip2(target: Ship, friendly: Ship) -> Bool {
         let targetDistance = target.position.minus(position).length
@@ -83,6 +88,18 @@ extension Ship {
             && (friendlyDistance > unsafeRange)
     }
 }
+
+
+extension Ship {
+    func canSafelyEngageShip3(target: Ship, friendly: Ship) -> Bool {
+        let targetDistance = (target.position - position).length
+        let friendlyDistance = (friendly.position - target.position).length
+        return targetDistance <= firingRange
+            && targetDistance > unsafeRange
+            && (friendlyDistance > unsafeRange)
+    }
+}
+
 
 //: ## First-Class Functions
 
@@ -135,6 +152,22 @@ extension Ship {
     }
 }
 
+
+//: ## My extension
+
+
+func rectangle(width width: Distance, height: Distance) -> Region {
+    return { point in
+        let left:   Distance =  (width / 2.0) * (-1.0)
+        let right:  Distance =  (width / 2.0) * (+1.0)
+        let top:    Distance = (height / 2.0) * (+1.0)
+        let bottom: Distance = (height / 2.0) * (-1.0)
+        return left   <= point.x && point.x <= right
+            && bottom <= point.y && point.y <= top
+    }
+}
+
+
 //: ## Type-Driven Development
 //: ## Notes
 
@@ -167,15 +200,41 @@ struct TestRunner {
 //: ## Tests
 class MyTests : XCTestCase {
 
-    // TODO: Please write test case for rectangle() !!
-    
-    // failed sample
-    func testShouldFail() {
-        XCTFail("You must fail to succeed!")
+    let rect = rectangle(width: 10, height: 6)
+
+    // Assert: normal-case
+    func test_rectangle() {
+
+        // in-range
+        XCTAssertTrue(rect(Position(x:  0, y:  0))) // origin
+        XCTAssertTrue(rect(Position(x: -5, y:  3))) // top left
+        XCTAssertTrue(rect(Position(x: +5, y:  3))) // top right
+        XCTAssertTrue(rect(Position(x: -5, y: -3))) // bottom left
+        XCTAssertTrue(rect(Position(x: +5, y: -3))) // bottom right
+        
+        // out-range
+        XCTAssertFalse(rect(Position(x: -6, y:  4))) // top left
+        XCTAssertFalse(rect(Position(x: +6, y:  4))) // top right
+        XCTAssertFalse(rect(Position(x: -6, y: -4))) // bottom left
+        XCTAssertFalse(rect(Position(x: +6, y: -4))) // bottom right
     }
     
-    func testShouldPass() {
-        XCTAssertEqual(2 + 2, 4)
+    // Assert: invert region
+    func test_rectangle_invert() {
+        let iRect = invert(rect)
+        
+        // out-range
+        XCTAssertFalse(iRect(Position(x:  0, y:  0))) // origin
+        XCTAssertFalse(iRect(Position(x: -5, y:  3))) // top left
+        XCTAssertFalse(iRect(Position(x: +5, y:  3))) // top right
+        XCTAssertFalse(iRect(Position(x: -5, y: -3))) // bottom left
+        XCTAssertFalse(iRect(Position(x: +5, y: -3))) // bottom right
+        
+        // in-range
+        XCTAssertTrue(iRect(Position(x: -6, y:  4))) // top left
+        XCTAssertTrue(iRect(Position(x: +6, y:  4))) // top right
+        XCTAssertTrue(iRect(Position(x: -6, y: -4))) // bottom left
+        XCTAssertTrue(iRect(Position(x: +6, y: -4))) // bottom right
     }
 }
 
