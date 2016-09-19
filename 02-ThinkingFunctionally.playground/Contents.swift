@@ -65,7 +65,7 @@ extension Ship {
 
 
 extension Position {
-    func minus(p: Position) -> Position {
+    func minus(_ p: Position) -> Position {
         return Position(x: x - p.x, y: y - p.y)
     }
     var length: Double {
@@ -103,10 +103,10 @@ extension Ship {
 
 //: ## First-Class Functions
 
-typealias Region = Position -> Bool
+typealias Region = (Position) -> Bool
 
 
-func circle(radius: Distance) -> Region {
+func circle(_ radius: Distance) -> Region {
     return { point in point.length <= radius }
 }
 
@@ -116,26 +116,26 @@ func circle2(radius: Distance, center: Position) -> Region {
 }
 
 
-func shift(region: Region, offset: Position) -> Region {
+func shift(_ region: @escaping Region, offset: Position) -> Region {
     return { point in region(point.minus(offset)) }
 }
 
 
-func invert(region: Region) -> Region {
+func invert(_ region: @escaping Region) -> Region {
     return { point in !region(point) }
 }
 
 
-func intersection(region1: Region, _ region2: Region) -> Region {
+func intersection(_ region1: @escaping Region, _ region2: @escaping Region) -> Region {
     return { point in region1(point) && region2(point) }
 }
 
-func union(region1: Region, _ region2: Region) -> Region {
+func union(region1: @escaping Region, _ region2: @escaping Region) -> Region {
     return { point in region1(point) || region2(point) }
 }
 
 
-func difference(region: Region, minus: Region) -> Region {
+func difference(_ region: @escaping Region, minus: @escaping Region) -> Region {
     return intersection(region, invert(minus))
 }
 
@@ -156,7 +156,7 @@ extension Ship {
 //: ## My extension
 
 
-func rectangle(width width: Distance, height: Distance) -> Region {
+func rectangle(width: Distance, height: Distance) -> Region {
     return { point in
         let left:   Distance =  (width / 2.0) * (-1.0)
         let right:  Distance =  (width / 2.0) * (+1.0)
@@ -174,23 +174,23 @@ func rectangle(width width: Distance, height: Distance) -> Region {
 //: ## Test Foundation
 
 class PlaygroundTestObserver : NSObject, XCTestObservation {
-    @objc func testCase(testCase: XCTestCase, didFailWithDescription description: String, inFile filePath: String?, atLine lineNumber: UInt) {
+    @objc func testCase(_ testCase: XCTestCase, didFailWithDescription description: String, inFile filePath: String?, atLine lineNumber: UInt) {
         print("Test failed on line \(lineNumber): \(testCase.name), \(description)")
     }
 }
 
 let observer = PlaygroundTestObserver()
-let center = XCTestObservationCenter.sharedTestObservationCenter()
+let center = XCTestObservationCenter.shared()
 center.addTestObserver(observer)
 
 struct TestRunner {
     
-    func runTests(testClass:AnyClass) {
+    func runTests(_ testClass: AnyClass) {
         print("Running test suite \(testClass)")
         
         let tests = testClass as! XCTestCase.Type
         let testSuite = tests.defaultTestSuite()
-        testSuite.runTest()
+        testSuite.run()
         let run = testSuite.testRun as! XCTestSuiteRun
         
         print("Ran \(run.executionCount) tests in \(run.testDuration)s with \(run.totalFailureCount) failures")
@@ -238,4 +238,4 @@ class MyTests : XCTestCase {
     }
 }
 
-TestRunner().runTests(MyTests)
+TestRunner().runTests(MyTests.self)
