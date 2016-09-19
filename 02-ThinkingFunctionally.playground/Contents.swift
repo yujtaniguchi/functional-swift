@@ -90,17 +90,6 @@ extension Ship {
 }
 
 
-extension Ship {
-    func canSafelyEngageShip3(target: Ship, friendly: Ship) -> Bool {
-        let targetDistance = (target.position - position).length
-        let friendlyDistance = (friendly.position - target.position).length
-        return targetDistance <= firingRange
-            && targetDistance > unsafeRange
-            && (friendlyDistance > unsafeRange)
-    }
-}
-
-
 //: ## First-Class Functions
 
 typealias Region = (Position) -> Bool
