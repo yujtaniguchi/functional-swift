@@ -148,9 +148,9 @@ func color(color:UIColor) -> Attribute{
     }
     
 }
-func size(fontSize:CGFloat) -> Attribute{
+func font(name: String,size: CGFloat) -> Attribute{
     return{aStr in
-        let font = UIFont(name: "HiraKakuProN-W3", size: fontSize) ?? UIFont.systemFontOfSize(fontSize)
+        let font = UIFont(name: name, size: size) ?? UIFont.systemFontOfSize(size)
         let attr = [
             NSFontAttributeName: font,
             ]
@@ -174,8 +174,8 @@ func / (attribute1: Attribute ,string: String ) -> NSMutableAttributedString{
 
 
 //演算子の力
-let red15 = size(15)>>>color(UIColor.redColor())
-let magenta23 = size(23)>>>color(UIColor.magentaColor())
+let red15 = font("HiraKakuProN-W3",size: 15)>>>color(UIColor.redColor())
+let magenta23 = font("HiraKakuProN-W6",size:23)>>>color(UIColor.magentaColor())
 
 red15 / "jiji"
 magenta23 / "bobochi"

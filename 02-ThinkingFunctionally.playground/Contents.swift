@@ -267,3 +267,4 @@ class MyTests : XCTestCase {
 }
 
 TestRunner().runTests(MyTests)
+
