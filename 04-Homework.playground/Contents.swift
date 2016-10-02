@@ -79,7 +79,29 @@ class ExampleTests : XCTestCase {
 
 extension Dictionary {
 
-    // Please implementation, and pass all tests.
+    func mapValue(transform: (Value) -> Value) -> Dictionary<Key, Value> {
+        var result: [Key: Value] = [:]
+        for (key, value) in self {
+            result[key] = transform(value)
+        }
+        return result
+    }
+    
+    func filterByKey(isInclude: (Key) -> Bool) -> Dictionary<Key, Value> {
+        var result: [Key: Value] = [:]
+        for (key, value) in self where isInclude(key) {
+            result[key] = value
+        }
+        return result
+    }
+    
+    func reduceValue<R>(_ initial: R, reduce: (R, Value) -> R) -> R {
+        var result: R = initial
+        for (_, value) in self {
+            result = reduce(result, value)
+        }
+        return result
+    }
 }
 
 
