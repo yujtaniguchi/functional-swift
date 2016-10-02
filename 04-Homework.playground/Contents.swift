@@ -72,7 +72,7 @@ class ExampleTests : XCTestCase {
     
     func test_reduceValue() {
         let result: Int = dictionary.reduceValue(0){ return $0 + $1.characters.count }
-        XCTAssertEqual(result, 14)
+        XCTAssertEqual(result, 13)
     }
 }
 
