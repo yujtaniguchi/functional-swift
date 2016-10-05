@@ -71,15 +71,41 @@ class ExampleTests : XCTestCase {
     }
     
     func test_reduceValue() {
-        let result: Int = dictionary.reduceValue(0){ return $0 + $1.characters.count }
+        let result: Int = dictionary.reduceValue(val: 0){ return $0 + $1.characters.count }
         XCTAssertEqual(result, 13)
     }
 }
 
 
 extension Dictionary {
-
     // Please implementation, and pass all tests.
+    func mapValue(arr:(String) -> String) -> [String:String] {
+        var result1 :[String:String] = [:]
+        for x in self {
+            result1["\(x.key)"] = arr(x.value as! String)
+        }
+        return result1
+    }
+    
+    func filterByKey(arr:(String) -> Bool) -> [String:String] {
+        var result1 :[String:String] = [:]
+        print(self)
+        for x in self {
+            if arr(x.value as! String) == true {
+                result1["\(x.key)"] = x.value as? String
+            }
+        }
+        return result1
+    }
+    
+    func reduceValue(val:Int,arr:(Int,String) -> Int) -> Int {
+        var result1 = val
+        for x in self {
+            print(result1)
+            result1 =  arr(result1,x.value as! String)
+        }
+        return result1
+    }
 }
 
 
