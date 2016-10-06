@@ -71,44 +71,100 @@ class ExampleTests : XCTestCase {
     }
     
     func test_reduceValue() {
-        let result: Int = dictionary.reduceValue(val: 0){ return $0 + $1.characters.count }
+        let result: Int = dictionary.reduceValue(0){ return $0 + $1.characters.count }
         XCTAssertEqual(result, 13)
     }
 }
 
 
 extension Dictionary {
-    // Please implementation, and pass all tests.
-    func mapValue(arr:(String) -> String) -> [String:String] {
-        var result1 :[String:String] = [:]
-        for x in self {
-            result1["\(x.key)"] = arr(x.value as! String)
+    //  宮坂の亀さんコード
+    //    func mapValue(arr:(String) -> String) -> [String:String] {
+    //        var result1 :[String:String] = [:]
+    //        for x in self {
+    //            result1["\(x.key)"] = arr(x.value as! String)
+    //        }
+    //        return result1
+    //    }
+    //
+    //    func filterByKey(arr:(String) -> Bool) -> [String:String] {
+    //        var result1 :[String:String] = [:]
+    //        print(self)
+    //        for x in self {
+    //            if arr(x.key as! String) == true {
+    //                result1["\(x.key)"] = x.value as? String
+    //            }
+    //        }
+    //        return result1
+    //    }
+    //
+    //    func reduceValue(_ val: Int,arr:(Int,String) -> Int) -> Int {
+    //        var result1 = val
+    //        for x in self {
+    //            print(result1)
+    //            result1 =  arr(result1,x.value as! String)
+    //        }
+    //        return result1
+    //    }
+    // 宮坂の亀さんコード終了
+    
+    // 細沼さんの瞬足コード(conglaturation)
+    //        func mapValue(transform: (Value) -> Value) -> Dictionary<Key, Value> {
+    //                    var result: [Key: Value] = [:]
+    //                    for (key, value) in self {
+    //                            result[key] = transform(value)
+    //                        }
+    //                    return result
+    //                }
+    //
+    //            func filterByKey(isInclude: (Key) -> Bool) -> Dictionary<Key, Value> {
+    //                    var result: [Key: Value] = [:]
+    //                    for (key, value) in self where isInclude(key) {
+    //                            result[key] = value
+    //                        }
+    //                    return result
+    //                }
+    //
+    //            func reduceValue<R>(_ initial: R, reduce: (R, Value) -> R) -> R {
+    //                    var result: R = initial
+    //                    for (_, value) in self {
+    //                            result = reduce(result, value)
+    //                       }
+    //                    return result
+    //                }
+    //  細沼さんの瞬足コード終わり
+    
+    
+    // 宮坂のドーピングコード
+    func mapValue(transform:(Value) -> Value) -> [Key:Value] {
+        var result1 :[Key:Value] = [:]
+        for (key , value) in self {
+            result1[key] = transform(value)
         }
         return result1
     }
     
-    func filterByKey(arr:(String) -> Bool) -> [String:String] {
-        var result1 :[String:String] = [:]
-        print(self)
-        for x in self {
-            if arr(x.value as! String) == true {
-                result1["\(x.key)"] = x.value as? String
-            }
+    func filterByKey(isInclude:(Key) -> Bool) -> [Key:Value] {
+        var result1 :[Key:Value] = [:]
+        for (key, value) in self where isInclude(key){
+            result1[key] = value
         }
         return result1
     }
     
-    func reduceValue(val:Int,arr:(Int,String) -> Int) -> Int {
+    func reduceValue<R>(_ val: R,transform:(R,Value) -> R) -> R {
         var result1 = val
-        for x in self {
-            print(result1)
-            result1 =  arr(result1,x.value as! String)
+        for (_,value) in self {
+            result1 =  transform(result1,value)
         }
         return result1
     }
+    
+    // 宮坂のドーピングコードおわり
 }
 
 
 //: ## Test execute
+
 
 TestRunner().run(ExampleTests.self)
