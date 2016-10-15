@@ -1,13 +1,15 @@
 # 読書会ステータス
+（）内は完了日。
 
 - [x] 1. Introduction
 - [x] 2. ThinkingFunctionally
 - [x] 3. Wrapping-Core-Image
 - [x] 4. Map,filter,reduce
-- [ ] 5. Optionals
-- [ ] 7. Purity
-- [ ] 8. Enums
-- [ ] 9. Purely-functional-data-structures
+- [x] 5. Optionals（2016/10/12）
+- [ ] 6. Case Study: QuickCheck
+- [ ] 7. The Value of Immutability
+- [ ] 8. Enumerations
+- [ ] 9. Purely Functional Data Structures
 - [ ] 10. Case Study: Diagrams
 - [ ] 11. Generators and Sequences
 - [ ] 12. Case Study: Parser Combinators
