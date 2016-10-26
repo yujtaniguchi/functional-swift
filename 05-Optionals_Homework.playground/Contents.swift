@@ -105,6 +105,70 @@ class ExampleTests : XCTestCase {
     }
 }
 
+enum Option<T:Equatable>: Equatable {
+    case some(T)
+    case none
+    
+    
+    func map<U>(_ closure:( (T) -> U )) -> Option<U> {
+        
+        switch self {
+        case .some(let a):
+            return .some(closure(a))
+        case .none:
+            return .none
+        }
+    }
+    
+    func flatMap<U>(_ closure:( (T) -> Option<U> )) -> Option<U> {
+        
+        switch self {
+        case .some(let a):
+            return closure(a)
+        case .none:
+            return .none
+        }
+    }
+    
+    
+}
+
+//infix operator ?? { associativity right }
+
+func ??<U>(lhs: Option<U>,rhs: U) -> U {
+    guard let unwrappedlhs = lhs else {
+        return rhs
+    }
+    return unwrappedlhs
+}
+
+func ==<T:Equatable>(lhs: Option<T>, rhs: Option<T> ) -> Bool {
+    
+    if let unwrappedLhs = lhs , let unwrappedRhs = rhs {
+        return unwrappedLhs == unwrappedRhs
+    }
+    if case .none = lhs , case .none = rhs {
+        return true
+    }
+    return false
+    
+}
+//1. Swift言語でシンタックスシュガーとして実現されている以下機能に似た関数を持つ。
+//- `ifLet2<A, B, R: Equatable>(_ a: Option<A>, _ b: Option<B>, _ match: @escaping (A, B) -> (R)) -> Option<R>`
+//引数`a`と`b`が共に値（.some）であった場合にクロージャ`match`を実行し、その値を`.some`に包んで返す。そうでなければ`.none`を返す。
+//
+func ifLet2<A, B, R: Equatable>(_ a: Option<A>, _ b: Option<B>, _ match: @escaping (A, B) -> (R)) -> Option<R> {
+    
+    guard let unwrappedA  = a else {
+        return .none
+    }
+    guard let unwrappedB  = b else {
+        return .none
+    }
+    return .some(match(unwrappedA,unwrappedB))
+
+}
+
 
 //: ## Test execute
 
