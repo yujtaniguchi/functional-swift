@@ -13,17 +13,17 @@ func check<X: Arbitrary, Y: Arbitrary>(message: String, _ property: (X, Y) -> Bo
 }
 
 extension CGSize {
-    func smaller() -> CGSize? {
+    public func smaller() -> CGSize? {
         return nil
     }
 }
 
 extension CGFloat: Arbitrary {
-    func smaller() -> CGFloat? {
+    public func smaller() -> CGFloat? {
         return nil
     }
     
-    static func arbitrary() -> CGFloat {
+    public static func arbitrary() -> CGFloat {
         let random: CGFloat = CGFloat(arc4random())
         let maxUint = CGFloat(UInt32.max)
         return 10000 * ((random - maxUint/2) / maxUint)
@@ -31,7 +31,7 @@ extension CGFloat: Arbitrary {
 }
 
 extension Character {
-    func smaller() -> Character? { return nil }
+    public func smaller() -> Character? { return nil }
 }
 
 func plusIsCommutative(x: Int, y: Int) -> Bool {
@@ -43,13 +43,13 @@ func minusIsCommutative(x: Int, y: Int) -> Bool {
 }
 
 extension Int: Arbitrary {
-    static func arbitrary() -> Int {
+    public static func arbitrary() -> Int {
         return Int(arc4random())
     }
 }
 
 extension Character: Arbitrary {
-    static func arbitrary() -> Character {
+    public static func arbitrary() -> Character {
         return Character(UnicodeScalar(Int.random(from: 65, to: 90))!)
     }
 }
@@ -65,7 +65,7 @@ extension Int {
 }
 
 extension String: Arbitrary {
-    static func arbitrary() -> String {
+    public static func arbitrary() -> String {
         let randomLength = Int.random(from: 0, to: 40)
         let randomCharacters = tabulate(randomLength) { _ in
             Character.arbitrary()
@@ -92,29 +92,29 @@ extension CGSize {
 }
 
 extension CGSize: Arbitrary {
-    static func arbitrary() -> CGSize {
+    public static func arbitrary() -> CGSize {
         return CGSize(width: CGFloat.arbitrary(),
                       height: CGFloat.arbitrary())
     }
 }
 
-protocol Smaller {
+public protocol Smaller {
     func smaller() -> Self?
 }
 
 extension Int: Smaller {
-    func smaller() -> Int? {
+    public func smaller() -> Int? {
         return self == 0 ? nil : self / 2
     }
 }
 
 extension String: Smaller {
-    func smaller() -> String? {
+    public func smaller() -> String? {
         return isEmpty ? nil : String(characters.dropFirst())
     }
 }
 
-protocol Arbitrary: Smaller {
+public protocol Arbitrary: Smaller {
     static func arbitrary() -> Self
 }
 
@@ -150,7 +150,7 @@ func qsort(_ array: [Int]) -> [Int] {
 }
 
 extension Array: Smaller {
-    func smaller() -> [Element]? {
+    public func smaller() -> [Element]? {
         guard !isEmpty else { return nil }
         return Array(dropFirst())
     }
@@ -183,13 +183,13 @@ func checkHelper<A>(_ arbitraryInstance: ArbitraryInstance<A>,
     print("\"\(message)\" passed \(numberOfIterations) tests.")
 }
 
-func check<X: Arbitrary>(message: String, property: (X) -> Bool) -> () {
+public func check<X: Arbitrary>(message: String, property: (X) -> Bool) -> () {
     let instance = ArbitraryInstance(arbitrary: X.arbitrary,
                                      smaller: { $0.smaller() })
     checkHelper(instance, property, message)
 }
 
-func check<X: Arbitrary>(message: String, _ property: ([X]) -> Bool) -> () {
+public func check<X: Arbitrary>(message: String, _ property: ([X]) -> Bool) -> () {
     let instance = ArbitraryInstance(arbitrary: Array.arbitrary,
                                      smaller: { (x: [X]) in x.smaller() })
     checkHelper(instance, property, message)
