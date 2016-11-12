@@ -22,7 +22,7 @@ extension CGFloat: Arbitrary {
     func smaller() -> CGFloat? {
         return nil
     }
-
+    
     static func arbitrary() -> CGFloat {
         let random: CGFloat = CGFloat(arc4random())
         let maxUint = CGFloat(UInt32.max)
@@ -50,16 +50,16 @@ extension Int: Arbitrary {
 
 extension Character: Arbitrary {
     static func arbitrary() -> Character {
-        return Character(UnicodeScalar(Int.random(from: 65, to: 90)))
+        return Character(UnicodeScalar(Int.random(from: 65, to: 90))!)
     }
 }
 
-func tabulate<A>(times: Int, transform: Int -> A) -> [A] {
+func tabulate<A>(_ times: Int, _ transform: (Int) -> A) -> [A] {
     return (0..<times).map(transform)
 }
 
 extension Int {
-    static func random(from from: Int, to: Int) -> Int {
+    static func random(from: Int, to: Int) -> Int {
         return from + (Int(arc4random()) % (to - from))
     }
 }
@@ -74,7 +74,7 @@ extension String: Arbitrary {
     }
 }
 
-func check1<A: Arbitrary>(message: String, _ property: A -> Bool) -> () {
+func check1<A: Arbitrary>(message: String, _ property: (A) -> Bool) -> () {
     for _ in 0..<numberOfIterations {
         let value = A.arbitrary()
         guard property(value) else {
@@ -94,7 +94,7 @@ extension CGSize {
 extension CGSize: Arbitrary {
     static func arbitrary() -> CGSize {
         return CGSize(width: CGFloat.arbitrary(),
-            height: CGFloat.arbitrary())
+                      height: CGFloat.arbitrary())
     }
 }
 
@@ -118,14 +118,14 @@ protocol Arbitrary: Smaller {
     static func arbitrary() -> Self
 }
 
-func iterateWhile<A>(condition: A -> Bool, initial: A, next: A -> A?) -> A {
-    if let x = next(initial) where condition(x) {
+func iterateWhile<A>(_ condition: (A) -> Bool, initial: A, next: (A) -> A?) -> A {
+    if let x = next(initial), condition(x) {
         return iterateWhile(condition, initial: x, next: next)
     }
     return initial
 }
 
-func check2<A: Arbitrary>(message: String, _ property: A -> Bool) -> () {
+func check2<A: Arbitrary>(message: String, _ property: (A) -> Bool) -> () {
     for _ in 0..<numberOfIterations {
         let value = A.arbitrary()
         guard property(value) else {
@@ -139,12 +139,14 @@ func check2<A: Arbitrary>(message: String, _ property: A -> Bool) -> () {
     print("\"\(message)\" passed \(numberOfIterations) tests.")
 }
 
-func qsort(var array: [Int]) -> [Int] {
+func qsort(_ array: [Int]) -> [Int] {
+    var array = array
     if array.isEmpty { return [] }
-    let pivot = array.removeAtIndex(0)
+    let pivot = array.remove(at: 0)
     let lesser = array.filter { $0 < pivot }
     let greater = array.filter { $0 >= pivot }
-    return qsort(lesser) + [pivot] + qsort(greater)
+    let pivotArr = [pivot]
+    return qsort(lesser) + pivotArr + qsort(greater)
 }
 
 extension Array: Smaller {
@@ -163,17 +165,17 @@ extension Array where Element: Arbitrary {
 
 struct ArbitraryInstance<T> {
     let arbitrary: () -> T
-    let smaller: T -> T?
+    let smaller: (T) -> T?
 }
 
-func checkHelper<A>(arbitraryInstance: ArbitraryInstance<A>,
-    _ property: A -> Bool, _ message: String) -> ()
+func checkHelper<A>(_ arbitraryInstance: ArbitraryInstance<A>,
+                 _ property: (A) -> Bool, _ message: String) -> ()
 {
     for _ in 0..<numberOfIterations {
         let value = arbitraryInstance.arbitrary()
         guard property(value) else {
             let smallerValue = iterateWhile({ !property($0) },
-                initial: value, next: arbitraryInstance.smaller)
+                                            initial: value, next: arbitraryInstance.smaller)
             print("\"\(message)\" doesn't hold: \(smallerValue)")
             return
         }
@@ -181,14 +183,14 @@ func checkHelper<A>(arbitraryInstance: ArbitraryInstance<A>,
     print("\"\(message)\" passed \(numberOfIterations) tests.")
 }
 
-func check<X: Arbitrary>(message: String, property: X -> Bool) -> () {
+func check<X: Arbitrary>(message: String, property: (X) -> Bool) -> () {
     let instance = ArbitraryInstance(arbitrary: X.arbitrary,
-        smaller: { $0.smaller() })
+                                     smaller: { $0.smaller() })
     checkHelper(instance, property, message)
 }
 
-func check<X: Arbitrary>(message: String, _ property: [X] -> Bool) -> () {
+func check<X: Arbitrary>(message: String, _ property: ([X]) -> Bool) -> () {
     let instance = ArbitraryInstance(arbitrary: Array.arbitrary,
-        smaller: { (x: [X]) in x.smaller() })
+                                     smaller: { (x: [X]) in x.smaller() })
     checkHelper(instance, property, message)
 }
