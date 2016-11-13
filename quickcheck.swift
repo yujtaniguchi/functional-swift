@@ -60,7 +60,7 @@ func tabulate<A>(_ times: Int, _ transform: (Int) -> A) -> [A] {
 
 extension Int {
     static func random(from: Int, to: Int) -> Int {
-        return from + (Int(arc4random()) % (to - from))
+        return from + (Int(arc4random_uniform(UInt32(to - from))))
     }
 }
 
