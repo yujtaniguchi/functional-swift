@@ -21,26 +21,45 @@ import XCTest
 //:# Product code
 
 extension Array {
+    func my_reversed() -> [Element] {
+        guard let (head, tail) = headTail() else { return [] }
+        var reversed = tail.my_reversed()
+        reversed.append(head)
+        return reversed
+    }
     
-    // TODO: Please implement `my_reversed` function.
+    private func headTail() -> (Element, [Element])? {
+        guard let head = self.first else { return nil }
+        let tail = Array(self.dropFirst())
+        return (head, tail)
+    }
 }
 
 
 //:# Test code - QuickCheck
 
-// TODO: Please implement some QuickCheck's tests.
+check(message: "配列を反転して反転すると、元の配列と一致すること") { (xs: [Int]) in
+    xs == xs.my_reversed().my_reversed()
+}
 
-// example: 
-//check(message: "配列の要素数は何回取得しても同じ値を返すこと（参照透過性）") { (xs: [Int]) in xs.count == xs.count }
+check(message: "配列を反転して得られた先頭要素は、元の配列の末尾の要素と一致すること") { (xs: [Int]) in
+    guard !xs.isEmpty else { return true } // 空の場合は検証しない
+    return xs.my_reversed().first! == xs.last!
+}
+
+check(message: "配列を反転して得られた結果の要素数は、元の配列の要素数と一致すること") { (xs: [Int]) in
+    xs.count == xs.my_reversed().count
+}
 
 
 //:# Test code - XCTest
 
 class ArrayTests : XCTestCase {
     
-    // example:
-    //func test_foo() {
-    //}
+    func test_my_reversed() {
+        let xs: [Int] = [1, 2, 3, 4, 5]
+        XCTAssertEqual(xs.my_reversed(), [5, 4, 3, 2, 1])
+    }
 }
 
 
