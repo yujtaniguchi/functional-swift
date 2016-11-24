@@ -65,12 +65,17 @@ extension Ship {
 
 
 extension Position {
-    func minus(p: Position) -> Position {
+    func minus(_ p: Position) -> Position {
         return Position(x: x - p.x, y: y - p.y)
     }
     var length: Double {
         return sqrt(x * x + y * y)
     }
+}
+
+
+func - (lhs: Position, rhs: Position) -> Position {
+    return lhs.minus(rhs)
 }
 
 
@@ -84,12 +89,13 @@ extension Ship {
     }
 }
 
+
 //: ## First-Class Functions
 
-typealias Region = Position -> Bool
+typealias Region = (Position) -> Bool
 
 
-func circle(radius: Distance) -> Region {
+func circle(_ radius: Distance) -> Region {
     return { point in point.length <= radius }
 }
 
@@ -99,41 +105,56 @@ func circle2(radius: Distance, center: Position) -> Region {
 }
 
 
-func shift(region: Region, offset: Position) -> Region {
-    return { point in region(point.minus(offset)) }
+func shifted(_ region: @escaping Region, to: Position) -> Region {
+    return { point in region(point.minus(to)) }
 }
 
 
-func invert(region: Region) -> Region {
+func inverted(_ region: @escaping Region) -> Region {
     return { point in !region(point) }
 }
 
 
-func intersection(region1: Region, _ region2: Region) -> Region {
+func intersection(_ region1: @escaping Region, _ region2: @escaping Region) -> Region {
     return { point in region1(point) && region2(point) }
 }
 
-func union(region1: Region, _ region2: Region) -> Region {
+func union(region1: @escaping Region, _ region2: @escaping Region) -> Region {
     return { point in region1(point) || region2(point) }
 }
 
 
-func difference(region: Region, minus: Region) -> Region {
-    return intersection(region, invert(minus))
+func difference(from region: @escaping Region, minus: @escaping Region) -> Region {
+    return intersection(region, inverted(minus))
 }
 
 
 extension Ship {
-    func canSafelyEngageShip(target: Ship, friendly: Ship) -> Bool {
-        let rangeRegion = difference(circle(firingRange),
-            minus: circle(unsafeRange))
-        let firingRegion = shift(rangeRegion, offset: position)
-        let friendlyRegion = shift(circle(unsafeRange),
-            offset: friendly.position)
-        let resultRegion = difference(firingRegion, minus: friendlyRegion)
+    func canSafelyEngage(target: Ship, friendly: Ship) -> Bool {
+        let rangeRegion    = difference(from: circle(firingRange), minus: circle(unsafeRange))
+        let firingRegion   = shifted(rangeRegion, to: position)
+        let friendlyRegion = shifted(circle(unsafeRange), to: friendly.position)
+        let resultRegion   = difference(from: firingRegion, minus: friendlyRegion)
         return resultRegion(target.position)
     }
 }
+
+
+//: ## My extension
+
+struct Regions {
+    static func rectangle(width: Distance, height: Distance) -> Region {
+        return { point in
+            let left:   Distance =  (width / 2.0) * (-1.0)
+            let right:  Distance =  (width / 2.0) * (+1.0)
+            let top:    Distance = (height / 2.0) * (+1.0)
+            let bottom: Distance = (height / 2.0) * (-1.0)
+            return left   <= point.x && point.x <= right
+                && bottom <= point.y && point.y <= top
+        }
+    }
+}
+
 
 //: ## Type-Driven Development
 //: ## Notes
@@ -141,23 +162,23 @@ extension Ship {
 //: ## Test Foundation
 
 class PlaygroundTestObserver : NSObject, XCTestObservation {
-    @objc func testCase(testCase: XCTestCase, didFailWithDescription description: String, inFile filePath: String?, atLine lineNumber: UInt) {
+    @objc func testCase(_ testCase: XCTestCase, didFailWithDescription description: String, inFile filePath: String?, atLine lineNumber: UInt) {
         print("Test failed on line \(lineNumber): \(testCase.name), \(description)")
     }
 }
 
 let observer = PlaygroundTestObserver()
-let center = XCTestObservationCenter.sharedTestObservationCenter()
+let center = XCTestObservationCenter.shared()
 center.addTestObserver(observer)
 
 struct TestRunner {
     
-    func runTests(testClass:AnyClass) {
+    func run(_ testClass: AnyClass) {
         print("Running test suite \(testClass)")
         
         let tests = testClass as! XCTestCase.Type
         let testSuite = tests.defaultTestSuite()
-        testSuite.runTest()
+        testSuite.run()
         let run = testSuite.testRun as! XCTestSuiteRun
         
         print("Ran \(run.executionCount) tests in \(run.testDuration)s with \(run.totalFailureCount) failures")
@@ -165,18 +186,44 @@ struct TestRunner {
 }
 
 //: ## Tests
-class MyTests : XCTestCase {
+class RectangleTests : XCTestCase {
 
-    // TODO: Please write test case for rectangle() !!
-    
-    // failed sample
-    func testShouldFail() {
-        XCTFail("You must fail to succeed!")
+    let rectangle = Regions.rectangle(width: 10, height: 6)
+
+    // Assert: normal-case
+    func test_rectangle() {
+
+        // in-range
+        XCTAssertTrue(rectangle(Position(x:  0, y:  0))) // origin
+        XCTAssertTrue(rectangle(Position(x: -5, y:  3))) // top left
+        XCTAssertTrue(rectangle(Position(x: +5, y:  3))) // top right
+        XCTAssertTrue(rectangle(Position(x: -5, y: -3))) // bottom left
+        XCTAssertTrue(rectangle(Position(x: +5, y: -3))) // bottom right
+        
+        // out-range
+        XCTAssertFalse(rectangle(Position(x: -6, y:  4))) // top left
+        XCTAssertFalse(rectangle(Position(x: +6, y:  4))) // top right
+        XCTAssertFalse(rectangle(Position(x: -6, y: -4))) // bottom left
+        XCTAssertFalse(rectangle(Position(x: +6, y: -4))) // bottom right
     }
     
-    func testShouldPass() {
-        XCTAssertEqual(2 + 2, 4)
+    // Assert: invert region
+    func test_rectangle_invert() {
+        let iRect = inverted(rectangle)
+        
+        // out-range
+        XCTAssertFalse(iRect(Position(x:  0, y:  0))) // origin
+        XCTAssertFalse(iRect(Position(x: -5, y:  3))) // top left
+        XCTAssertFalse(iRect(Position(x: +5, y:  3))) // top right
+        XCTAssertFalse(iRect(Position(x: -5, y: -3))) // bottom left
+        XCTAssertFalse(iRect(Position(x: +5, y: -3))) // bottom right
+        
+        // in-range
+        XCTAssertTrue(iRect(Position(x: -6, y:  4))) // top left
+        XCTAssertTrue(iRect(Position(x: +6, y:  4))) // top right
+        XCTAssertTrue(iRect(Position(x: -6, y: -4))) // bottom left
+        XCTAssertTrue(iRect(Position(x: +6, y: -4))) // bottom right
     }
 }
 
-TestRunner().runTests(MyTests)
+TestRunner().run(RectangleTests.self)
