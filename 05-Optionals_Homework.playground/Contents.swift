@@ -52,7 +52,58 @@ struct TestRunner {
  引数`a`と`b`が共に値（.some）であった場合にクロージャ`match`を実行し、その値を`.some`に包んで返す。そうでなければ`.none`を返す。
  */
 
-// TODO: Please tell me your answer.
+enum Option<T: Equatable>: Equatable {
+    case some(T)
+    case none
+}
+
+func == <T: Equatable>(lhs: Option<T>, rhs: Option<T>) -> Bool {
+    switch (lhs, rhs) {
+    case (.some(let x), .some(let y)):
+        return x == y
+    case (.none, .none):
+        return true
+    case (.some(_), .none):
+        return false
+    case (.none, .some(_)):
+        return false
+    }
+}
+
+func ?? <T>(x: Option<T>, defaultExpr: @autoclosure () -> T) -> T {
+    switch x {
+    case .some(let x): return x
+    case .none:        return defaultExpr()
+    }
+}
+
+extension Option {
+    func map<R>(_ transform: (T) -> R) -> Option<R> {
+        switch self {
+        case .some(let x):
+            return .some(transform(x))
+        case .none:
+            return .none
+        }
+    }
+    
+    func flatMap<R>(_ transform: (T) -> Option<R>) -> Option<R> {
+        switch self {
+        case .some(let x):
+            return transform(x)
+        case .none:
+            return .none
+        }
+    }
+}
+
+func ifLet2<A, B, R: Equatable>(_ a: Option<A>, _ b: Option<B>, _ match: @escaping (A, B) -> (R)) -> Option<R> {
+    return a.flatMap { a2 in
+        return b.flatMap { b2 in
+            return Option.some(match(a2, b2))
+        }
+    }
+}
 
 class ExampleTests : XCTestCase {
     
